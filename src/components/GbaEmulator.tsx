@@ -26,12 +26,33 @@ export const GbaEmulator = () => {
   const startGame = (url: string, name: string) => {
     const gameElement = document.querySelector("#game");
 
-    if (!gameElement || startedRef.current) return;
+    if (!gameElement) return;
+
+    try {
+      window.EJS_emulator?.pause?.();
+      window.EJS_emulator?.stop?.();
+      window.EJS_emulator?.destroy?.();
+      window.EJS_emulator = undefined;
+    } catch (error) {
+      console.log("Erro ao parar emulador anterior:", error);
+    }
+
+    document.querySelectorAll("audio, video").forEach((media) => {
+      if (media instanceof HTMLMediaElement) {
+        media.pause();
+        media.removeAttribute("src");
+        media.load();
+        media.remove();
+      }
+    });
+
+    gameElement.innerHTML = "";
 
     startedRef.current = true;
 
     setRomName(name);
     setLoading(true);
+    setGameReady(false);
 
     window.EJS_player = "#game";
     window.EJS_core = "gba";
@@ -49,16 +70,13 @@ export const GbaEmulator = () => {
       }, 300);
     };
 
-    if (!scriptLoadedRef.current) {
-      const script = document.createElement("script");
-      script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
-      script.async = true;
+    const script = document.createElement("script");
+    script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+    script.async = true;
+    document.body.appendChild(script);
 
-      document.body.appendChild(script);
-      scriptLoadedRef.current = true;
-    }
+    scriptLoadedRef.current = true;
   };
-
   useEffect(() => {
     const timer = window.setTimeout(() => {
       startGame(DEFAULT_ROM_URL, DEFAULT_ROM_NAME);
@@ -74,7 +92,41 @@ export const GbaEmulator = () => {
 
     if (!file) return;
 
-    alert("Para trocar a ROM, recarregue a página após selecionar outra ROM.");
+    const romUrl = URL.createObjectURL(file);
+    const romName = file.name.replace(".gba", "");
+
+    try {
+      window.EJS_emulator?.pause?.();
+      window.EJS_emulator?.stop?.();
+      window.EJS_emulator?.destroy?.();
+      window.EJS_emulator = undefined;
+    } catch (error) {
+      console.log("Erro ao encerrar emulator antigo:", error);
+    }
+
+    const gameElement = document.querySelector("#game");
+
+    if (gameElement) {
+      gameElement.innerHTML = "";
+    }
+
+    document.querySelectorAll("audio, video").forEach((media) => {
+      if (media instanceof HTMLMediaElement) {
+        media.pause();
+        media.removeAttribute("src");
+        media.load();
+        media.remove();
+      }
+    });
+    setLoading(true);
+    setGameReady(false);
+    setRomName(romName);
+
+    startedRef.current = false;
+
+    setTimeout(() => {
+      startGame(romUrl, romName);
+    }, 300);
   };
 
   return (
@@ -92,7 +144,7 @@ export const GbaEmulator = () => {
           onClick={() => window.location.reload()}
           className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/20"
         >
-          Sem o jogo demorar para funcionar clique aqui!
+          Se o jogo demorar para funcionar clique aqui!
         </button>
       </div>
       <div className="w-full max-w-5xl md:rounded-3xl md:border md:border-white/10 md:bg-[#111827] md:p-4 md:shadow-2xl max-md:w-screen max-md:h-[92dvh] max-md:max-w-none max-md:rounded-none max-md:border-0 max-md:bg-black max-md:p-0 max-md:shadow-none">
