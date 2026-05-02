@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@emulatorjs/emulatorjs": "^4.2.3",
+    "@tailwindcss/vite": "^4.2.4",
     "@thenick775/mgba-wasm": "^2.4.1",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
